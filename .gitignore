@@ -4,3 +4,11 @@ venv/
 *.sqlite3
 .DS_Store
 .pytest_cache/
+
+
+# js stuff
+
+*node_modules*
+build
+yarn.lock
+build/*
