@@ -89,3 +89,7 @@ numpy.savetxt('phase_space_0.5_2_0.25_0_1_0.2.csv', data, fmt='%.5f',
 data = compute_space(numpy.arange(0.5, 2, 0.1), numpy.arange(0, 1, 0.05))
 numpy.savetxt('phase_space_0.5_2_0.1_0_1_0.05.csv', data, fmt='%.7f',
               delimiter=',', newline='\n', header='A2,A3,p2,p3,max')
+
+data = compute_space(numpy.arange(0.5, 2, 0.03), numpy.arange(0, 1, 0.02))
+numpy.savetxt('phase_space_0.5_2_0.03_0_1_0.02.csv', data, fmt='%.7f',
+              delimiter=',', newline='\n', header='A2,A3,p2,p3,max')
