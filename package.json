@@ -1,25 +1,28 @@
 {
-  "name": "harmonic-phase-exploration",
-  "version": "1.0.0",
-  "description": "A simple visualization of harmonic sums",
-  "main": "main.js",
-  "repository": "git@github.com:j2kun/harmonic-phase-space.git",
-  "author": "Jeremy Kun <j2kun@users.noreply.github.com>",
-  "license": "MIT",
-  "dependencies": {
-    "d3": "^5.15.0",
-    "d3-contour": "^1.3.2"
-  },
-  "devDependencies": {
-    "babel-cli": "^6.26.0",
-    "babel-core": "^6.22.1",
-    "babel-preset-es2015": "^6.22.0",
-    "babelify": "^7.3.0",
-    "browserify": "^14.1.0",
-    "gulp": "^3.9.1",
-    "gulp-sourcemaps": "^2.4.1",
-    "gulp-uglify": "^2.0.1",
-    "vinyl-buffer": "^1.0.0",
-    "vinyl-source-stream": "^1.1.0"
-  }
+    "name": "harmonic-phase-exploration",
+    "version": "1.0.0",
+    "description": "A simple visualization of harmonic sums",
+    "main": "main.js",
+    "repository": "git@github.com:j2kun/harmonic-phase-space.git",
+    "author": "Jeremy Kun <j2kun@users.noreply.github.com>",
+    "license": "MIT",
+    "engines": {
+        "node": "=10.8.0"
+    },
+    "dependencies": {
+        "d3": "^5.15.0",
+        "d3-contour": "^1.3.2"
+    },
+    "devDependencies": {
+        "babel-cli": "^6.26.0",
+        "babel-core": "^6.22.1",
+        "babel-preset-es2015": "^6.22.0",
+        "babelify": "^7.3.0",
+        "browserify": "^14.1.0",
+        "gulp": "^3.9.1",
+        "gulp-sourcemaps": "^2.4.1",
+        "gulp-uglify": "^2.0.1",
+        "vinyl-buffer": "^1.0.0",
+        "vinyl-source-stream": "^1.1.0"
+    }
 }
