@@ -1,7 +1,13 @@
 import * as d3 from 'd3';
+import * as slider from 'd3-simple-slider';
 
-// var data_url = "https://raw.githubusercontent.com/j2kun/harmonic-phase-space/master/phase_space_0.5_2_0.25_0_1_0.2.csv";
-var data_url = "https://raw.githubusercontent.com/j2kun/harmonic-phase-space/master/phase_space_0.5_2_0.1_0_1_0.05.csv";
+// var dataUrl = "https://raw.githubusercontent.com/j2kun/harmonic-phase-space/master/phase_space_0.5_2_0.25_0_1_0.2.csv";
+var dataUrl = "https://raw.githubusercontent.com/j2kun/harmonic-phase-space/master/phase_space_0.5_2_0.1_0_1_0.05.csv";
+var chosenParameters = {};
+
+// This is the global state that will be loaded once and persist for the life
+// of the program
+var groupedPlotData = null;
 
 var margin = {
     top: 10,
@@ -12,7 +18,7 @@ var margin = {
 var width = 660 - margin.left - margin.right;
 var height = 600 - margin.top - margin.bottom;
 
-let svg = d3.select(".centered").append("svg")
+let svg = d3.select("#plot").append("svg")
     .attr("width", width + margin.left + margin.right)
     .attr("height", height + margin.top + margin.bottom)
     .append("g")
@@ -27,7 +33,6 @@ var color;
 function setupAxes(domain, range) {
     // domain is a discrete set of possible points (assumed linear scale)
     // range is a length-two array of the min and max range value
-
     xAxis = d3.scaleBand()
         .domain(domain)
         .range([margin.left, width - margin.right]);
@@ -42,8 +47,48 @@ function setupAxes(domain, range) {
         .call(d3.axisLeft(yAxis));
 }
 
-function setupSliders() {
+function setupSlider(data, variableName) {
+    let rangeMin = Math.min(...data);
+    let rangeMax = Math.max(...data);
 
+    // Step
+    let sliderStep = slider
+        .sliderBottom()
+        .min(rangeMin)
+        .max(rangeMax)
+        .width(500)
+        .tickFormat(d3.format('.2f'))
+        .tickValues(data)
+        .marks(data)
+        .default(data[0])
+        .on('onchange', val => {
+            chosenParameters[variableName] = val;
+            render();
+        });
+
+    let sliderId = "slider-" + variableName;
+    let gStep = d3
+        .select('div#sliders')
+        .append('div')
+        .attr('id', sliderId)
+        .append('svg')
+        .attr('width', 600)
+        .attr('height', 80)
+        .append('g')
+        .attr('transform', 'translate(30,30)');
+
+    gStep.call(sliderStep);
+    d3.select('div#' + sliderId)
+        .insert("p", ":first-child")
+        .attr("class", "sliderName")
+        .text(variableName);
+}
+
+function setupSliders(domains, variableNames) {
+    // Domains is a dict {str: [float]}
+    for (let name of variableNames) {
+        setupSlider(domains[name], name);
+    }
 }
 
 function groupData(data) {
@@ -70,10 +115,10 @@ function computeDomain(data, dimensionLabel) {
 }
 
 
-function render(groupedPlotData) {
+function render() {
     // select the parameters to display from the sliders
-    let A2 = 0.5;
-    let A3 = 1.9;
+    let A2 = chosenParameters["A2"];
+    let A3 = chosenParameters["A3"];
 
     // index the right slice
     // Samples are the original rows of the CSV parsed as objects
@@ -81,7 +126,6 @@ function render(groupedPlotData) {
     let range = computeDomain(samples, "max");
     let rangeMin = Math.min(...range);
     let rangeMax = Math.max(...range);
-    console.log("Range is: " + [rangeMin, rangeMax]);
 
     // Prepare a color palette
     color = d3.scaleLinear()
@@ -89,25 +133,27 @@ function render(groupedPlotData) {
         .range(["blue", "red"]);
 
     // plot samples as rectangles
-    svg.selectAll("rect")
-        .data(samples)
-        .enter()
+    let rects = svg.selectAll("rect")
+        .data(samples);
+
+    rects.enter()
         .append("rect")
+        .merge(rects)
         .attr("x", function(d) {
             return xAxis(d.p2);
-        })
-        .attr("y", function(d) {
+        }).attr("y", function(d) {
             return yAxis(d.p3);
-        })
-        .attr("width", xAxis.bandwidth())
+        }).attr("width", xAxis.bandwidth())
         .attr("height", yAxis.bandwidth())
         .style("fill", function(d) {
             return color(d.max);
         });
+
+    rects.exit().remove();
 }
 
 
-d3.csv(data_url, function(record) {
+d3.csv(dataUrl, function(record) {
     // Convert the values to numeric
     return {
         A2: +record.A2,
@@ -118,12 +164,24 @@ d3.csv(data_url, function(record) {
     }
 }).then(function(data) {
     console.log('Done loading data');
-    setupSliders();
-    console.log('Done setting up figure');
-    let groupedPlotData = groupData(data);
-    let domain = computeDomain(data, "p2");
+    groupedPlotData = groupData(data);
+    let domainNames = ["A2", "A3", "p2", "p3", "max"];
+    let domains = domainNames.reduce(
+        (map, name) => {
+            map[name] = computeDomain(data, name);
+            return map;
+        }, {});
 
-    console.log("Domain is: " + domain);
-    setupAxes(domain);
-    render(groupedPlotData);
+    // Initial parameters are the min of all parameters
+    // "max" will be ignored anyway later so it's fine.
+    chosenParameters = Object.keys(domains).reduce(
+        (map, name) => {
+            map[name] = Math.min(...domains[name]);
+            return map;
+        }, {});
+
+    console.log('Done processing data');
+    setupAxes(domains["p2"]);
+    setupSliders(domains, ["A2", "A3"]);
+    render();
 });
