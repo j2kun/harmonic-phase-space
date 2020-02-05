@@ -29,6 +29,9 @@ var xAxis;
 var yAxis;
 var color;
 
+var tooltip = d3.select("body").append("div")
+    .attr("class", "tooltip")
+    .style("opacity", 1e-6);
 
 function setupAxes(domain, range) {
     // domain is a discrete set of possible points (assumed linear scale)
@@ -147,11 +150,30 @@ function render() {
         .attr("height", yAxis.bandwidth())
         .style("fill", function(d) {
             return color(d.max);
-        });
+        })
+        .on("mouseover", mouseover)
+        .on("mousemove", mousemove)
+        .on("mouseout", mouseout);
 
     rects.exit().remove();
 }
 
+/* Display the tooltip graph */
+function mouseover() {
+  tooltip.style("opacity", 1);
+}
+
+// where the tooltip previosly contained an image
+function mousemove() {
+  tooltip
+   .html("wat")
+      .style("left", (d3.event.pageX + 20) + "px")
+      .style("top", (d3.event.pageY + 20) + "px");
+}
+
+function mouseout() {
+  tooltip.style("opacity", 1e-6);
+}
 
 d3.csv(dataUrl, function(record) {
     // Convert the values to numeric
