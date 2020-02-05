@@ -17,6 +17,10 @@ var margin = {
 };
 var width = 660 - margin.left - margin.right;
 var height = 600 - margin.top - margin.bottom;
+var tooltipWidth = 300;
+var tooltipHeight = 300;
+var tooltipAxisPadding = 20;
+
 
 let svg = d3.select("#plot").append("svg")
     .attr("width", width + margin.left + margin.right)
@@ -31,7 +35,10 @@ var color;
 
 var tooltip = d3.select("body").append("div")
     .attr("class", "tooltip")
-    .style("opacity", 1e-6);
+    .attr("width", tooltipWidth + 2 * tooltipAxisPadding)
+    .attr("height", tooltipHeight)
+    .style("opacity", 0);
+
 
 function setupAxes(domain, range) {
     // domain is a discrete set of possible points (assumed linear scale)
@@ -158,21 +165,88 @@ function render() {
     rects.exit().remove();
 }
 
+function plotTooltipGraph() {
+    let A2 = 0.5;
+    let A3 = 0.7;
+    let p2 = 0.0;
+    let p3 = 0.0;
+
+    // Recompute tooltip graph
+    let summedSine = function(x) {
+        // A_k * sin(k 2pi t + p_k)
+        // where A_1 = 1, p_1 = 0
+        return (
+            Math.sin(1 * 2 * Math.PI * x) +
+            A2 * Math.sin(2 * 2 * Math.PI * x + p2) +
+            A3 * Math.sin(3 * 2 * Math.PI * x + p3)
+        );
+    };
+
+    let data = groupedPlotData[[A2, A3]];
+    let maxData = data.map(row => row["max"]);
+    let rangeMax = Math.max(...maxData);
+
+    // [-rangeMax, rangeMax] since the curve will be symmetric
+    // and the bounds are +- the max
+    let tooltipX = d3.scaleLinear().domain([0, 1]).range([0, tooltipWidth]);
+    let tooltipY = d3.scaleLinear().domain([-3, 3]).range([tooltipHeight, 0]);
+    let points = tooltipX.ticks(100).map(function(xi) {
+        return {
+            x: xi,
+            y: summedSine(xi)
+        };
+    });
+
+    let chart = d3.select("svg#tooltipChart")
+        .attr("width", tooltipWidth + 2 * tooltipAxisPadding)
+        .attr("height", tooltipHeight);
+
+
+    chart.append("g")
+        .attr("transform",
+            "translate(" +
+            2 * tooltipAxisPadding +
+            "," +
+            tooltipHeight / 2 +
+            ")")
+        .call(d3.axisBottom(tooltipX));
+
+    chart.append("g")
+        .attr("transform", "translate(" + 2 * tooltipAxisPadding + ",0)")
+        .call(d3.axisLeft(tooltipY));
+
+    var line = d3.line()
+        .x(function(d) {
+            return tooltipX(d.x);
+        })
+        .y(function(d) {
+            return tooltipY(d.y);
+        });
+
+    chart.append("path")
+        .datum(points)
+        .attr("class", "line")
+        .attr("transform", "translate(" + 2 * tooltipAxisPadding + ",0)")
+        .attr("d", line);
+}
+
 /* Display the tooltip graph */
 function mouseover() {
-  tooltip.style("opacity", 1);
+    tooltip.style("opacity", 1);
 }
 
 // where the tooltip previosly contained an image
 function mousemove() {
-  tooltip
-   .html("wat")
-      .style("left", (d3.event.pageX + 20) + "px")
-      .style("top", (d3.event.pageY + 20) + "px");
+    tooltip
+        .html('<svg id="tooltipChart"></svg>')
+        .style("left", (d3.event.pageX + 20) + "px")
+        .style("top", (d3.event.pageY + 20) + "px");
+
+    plotTooltipGraph();
 }
 
 function mouseout() {
-  tooltip.style("opacity", 1e-6);
+    tooltip.style("opacity", 0);
 }
 
 d3.csv(dataUrl, function(record) {
