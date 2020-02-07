@@ -31,13 +31,14 @@ samples = numpy.arange(0, 1, fmin_sample_step)
 
 def maximize(amplitudes, phases):
     f = make_curve(amplitudes, phases)
-    # minimizing -f is the same as maximizing f
+    # want to find the max magnitude of f, so abs(f) is magnitude,
+    # and the min of -abs(f) achieves this.
 
-    def g(t): return -f(t)
+    def g(t): return -abs(f(t))
 
     # optimize.fmin returns the argument achieving the local min
-    # passing it to f means we get a max of f
-    maximizing_f_vals = [f(optimize.fmin(g, z, disp=False)[0])
+    # passing it to f means we get the local max magnitude of f
+    maximizing_f_vals = [abs(f(optimize.fmin(g, z, disp=False)[0]))
                          for z in samples]
     return numpy.max(maximizing_f_vals)
 
