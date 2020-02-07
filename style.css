@@ -24,14 +24,22 @@ h1 {
     margin-right: 20px;
 }
 
-div.tooltip {
+div.graphContainer {
   position: absolute;
   background: #fff;
   pointer-events: none;
+  left: 20px;
+  top: 200px;
 }
 
-.line {
+#line {
     fill: none;
     stroke: #ffab00;
     stroke-width: 3;
+}
+
+.singleCurve {
+    fill: none;
+    stroke: #00abff;
+    stroke-width: 1;
 }
