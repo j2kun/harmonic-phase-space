@@ -9,8 +9,8 @@ import timeit
 def make_curve(amplitudes, phases):
     '''Construct a sum of shifted sine curves.
 
-    Each curve is A sin(k 2pi t + p) where (A, p) are entries of zip(amplitudes, phases)
-    and k is the 1-based index of the entry.
+    Each curve is A sin(k 2pi t + p) where (A, p) are entries of
+    zip(amplitudes, phases) and k is the 1-based index of the entry.
     '''
     n = len(amplitudes)
     amplitudes = numpy.array(amplitudes)
@@ -19,7 +19,7 @@ def make_curve(amplitudes, phases):
     harmonics = (1 + numpy.arange(n)) * 2 * numpy.pi
 
     def f(t):
-        return numpy.sum(numpy.sin(harmonics * t + phases) * amplitudes)
+        return numpy.sum(numpy.sin(harmonics * (t + phases)) * amplitudes)
 
     return f
 
@@ -32,11 +32,13 @@ samples = numpy.arange(0, 1, fmin_sample_step)
 def maximize(amplitudes, phases):
     f = make_curve(amplitudes, phases)
     # minimizing -f is the same as maximizing f
+
     def g(t): return -f(t)
 
     # optimize.fmin returns the argument achieving the local min
     # passing it to f means we get a max of f
-    maximizing_f_vals = [f(optimize.fmin(g, z, disp=False)[0]) for z in samples]
+    maximizing_f_vals = [f(optimize.fmin(g, z, disp=False)[0])
+                         for z in samples]
     return numpy.max(maximizing_f_vals)
 
 
@@ -72,7 +74,8 @@ def compute_space(amplitude_space, phase_space):
             est_total = minutes / (percent / 100)
             est = est_total - minutes
 
-            print(f"{percent}% ({minutes:.1f}m so far, est. {est:.1f}m remaining)")
+            print(f"{percent}% ({minutes:.1f}m so far, "
+                  f"est. {est:.1f}m remaining)")
 
         A2, A3, p2, p3 = entry
         max_value = maximize([1, A2, A3], [0, p2, p3])
@@ -90,6 +93,6 @@ data = compute_space(numpy.arange(0.5, 2, 0.1), numpy.arange(0, 1, 0.05))
 numpy.savetxt('phase_space_0.5_2_0.1_0_1_0.05.csv', data, fmt='%.7f',
               delimiter=',', newline='\n', header='A2,A3,p2,p3,max')
 
-data = compute_space(numpy.arange(0.5, 2, 0.03), numpy.arange(0, 1, 0.02))
-numpy.savetxt('phase_space_0.5_2_0.03_0_1_0.02.csv', data, fmt='%.7f',
-              delimiter=',', newline='\n', header='A2,A3,p2,p3,max')
+# data = compute_space(numpy.arange(0.5, 2, 0.03), numpy.arange(0, 1, 0.02))
+# numpy.savetxt('phase_space_0.5_2_0.03_0_1_0.02.csv', data, fmt='%.7f',
+#               delimiter=',', newline='\n', header='A2,A3,p2,p3,max')
