@@ -10,6 +10,7 @@ Still under construction, but the build instructions are below.
 ```bash
 virtualenv -p python3.7 venv
 source venv/bin/activate
+pip install -r requirements.txt
 python brute_force.py
 ```
 
