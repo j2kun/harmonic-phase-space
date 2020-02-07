@@ -37,3 +37,6 @@ Right now the url for the data file is hard coded in `main.js`.
 
 Then to view the visualization, build and open `index.html` in your browser.
 
+## Screenshot
+
+![screencap](screencap.png)
