@@ -2,7 +2,7 @@ import * as d3 from 'd3';
 import * as slider from 'd3-simple-slider';
 
 // var dataUrl = "https://raw.githubusercontent.com/j2kun/harmonic-phase-space/master/phase_space_0.5_2_0.25_0_1_0.2.csv";
-var dataUrl = "https://raw.githubusercontent.com/j2kun/harmonic-phase-space/master/phase_space_0.5_2_0.1_0_1_0.05.csv";
+var dataUrl = "https://media.githubusercontent.com/media/j2kun/harmonic-phase-space/master/phase_space_0.5_2_0.03_0_1_0.02.csv";
 var chosenParameters = {};
 
 // This is the global state that will be loaded once and persist for the life
