@@ -46,12 +46,12 @@ var graphXAxis;
 var graphYAxis;
 
 let plotLine = d3.line()
-  .x(function(d) {
-    return graphXAxis(d.x);
-  })
-  .y(function(d) {
-    return graphYAxis(d.y);
-  });
+    .x(function(d) {
+        return graphXAxis(d.x);
+    })
+    .y(function(d) {
+        return graphYAxis(d.y);
+    });
 
 
 function setupAxes(domain, range) {
@@ -199,21 +199,21 @@ function setupGraph() {
         .call(d3.axisLeft(graphYAxis));
 
     chart.append("path")
-      .attr("id", "line")
-      .attr("transform", "translate(" + 2 * graphAxisPadding + ",0)");
+        .attr("id", "line")
+        .attr("transform", "translate(" + 2 * graphAxisPadding + ",0)");
 
     chart.append("path")
-      .attr("id", "curve1")
-      .attr("class", "singleCurve")
-      .attr("transform", "translate(" + 2 * graphAxisPadding + ",0)");
+        .attr("id", "curve1")
+        .attr("class", "singleCurve")
+        .attr("transform", "translate(" + 2 * graphAxisPadding + ",0)");
     chart.append("path")
-      .attr("id", "curve2")
-      .attr("class", "singleCurve")
-      .attr("transform", "translate(" + 2 * graphAxisPadding + ",0)");
+        .attr("id", "curve2")
+        .attr("class", "singleCurve")
+        .attr("transform", "translate(" + 2 * graphAxisPadding + ",0)");
     chart.append("path")
-      .attr("id", "curve3")
-      .attr("class", "singleCurve")
-      .attr("transform", "translate(" + 2 * graphAxisPadding + ",0)");
+        .attr("id", "curve3")
+        .attr("class", "singleCurve")
+        .attr("transform", "translate(" + 2 * graphAxisPadding + ",0)");
 }
 
 function updateCurve(amplitude, shift, harmonic, name) {
@@ -229,12 +229,12 @@ function updateCurve(amplitude, shift, harmonic, name) {
     });
 
     d3.selectAll("path#" + name)
-        .each(function (d, i) {
+        .each(function(d, i) {
             if (i === 0) {
-              // put all your operations on the second element, e.g.
-              d3.select(this).datum(points).attr("d", plotLine);
+                // put all your operations on the second element, e.g.
+                d3.select(this).datum(points).attr("d", plotLine);
             }
-          });
+        });
 }
 
 function rerenderGraph(params) {
@@ -262,12 +262,12 @@ function rerenderGraph(params) {
     });
 
     d3.selectAll("path#line")
-        .each(function (d, i) {
+        .each(function(d, i) {
             if (i === 0) {
-              // put all your operations on the second element, e.g.
-              d3.select(this).datum(points).attr("d", plotLine);
+                // put all your operations on the second element, e.g.
+                d3.select(this).datum(points).attr("d", plotLine);
             }
-          });
+        });
 
     updateCurve(1, 0, 1, "curve1");
     updateCurve(A2, p2, 2, "curve2");
@@ -280,36 +280,78 @@ function mousemove() {
     rerenderGraph(rect.node().__data__);
 }
 
-d3.csv(dataUrl, function(record) {
-    // Convert the values to numeric
-    return {
-        A2: +record.A2,
-        A3: +record.A3,
-        p2: +record.p2,
-        p3: +record.p3,
-        max: +record.max
-    }
-}).then(function(data) {
-    console.log('Done loading data');
-    groupedPlotData = groupData(data);
-    let domainNames = ["A2", "A3", "p2", "p3", "max"];
-    let domains = domainNames.reduce(
-        (map, name) => {
-            map[name] = computeDomain(data, name);
-            return map;
-        }, {});
+if (/^file:\/\/\//.test(location.href)) {
+    let path = './';
+    let orig = fetch;
+    window.fetch = (resource) => ((/^[^/:]*:/.test(resource)) ?
+        orig(resource) :
+        new Promise(function(resolve, reject) {
+            let request = new XMLHttpRequest();
 
-    // Initial parameters are the min of all parameters
-    // "max" will be ignored anyway later so it's fine.
-    chosenParameters = Object.keys(domains).reduce(
-        (map, name) => {
-            map[name] = Math.min(...domains[name]);
-            return map;
-        }, {});
+            let fail = (error) => {
+                reject(error)
+            };
+            ['error', 'abort'].forEach((event) => {
+                request.addEventListener(event, fail);
+            });
 
-    console.log('Done processing data');
-    setupAxes(domains["p2"]);
-    setupSliders(domains, ["A2", "A3"]);
-    setupGraph();
-    render();
-});
+            let pull = (expected) => (new Promise((resolve, reject) => {
+                if (
+                    request.responseType == expected ||
+                    (expected == 'text' && !request.responseType)
+                )
+                    resolve(request.response);
+                else
+                    reject(request.responseType);
+            }));
+
+            request.addEventListener('load', () => (resolve({
+                arrayBuffer: () => (pull('arraybuffer')),
+                blob: () => (pull('blob')),
+                text: () => (pull('text')),
+                json: () => (pull('json')),
+                ok: true,
+                status: 200,
+                statusText: 'ok'
+            })));
+            request.open('GET', resource.replace(/^\//, path));
+            request.send();
+        })
+    );
+}
+
+d3.csv('./phase_space_0.5_2_0.03_0_1_0.02.csv', function(record) {
+        // Convert the values to numeric
+        return {
+            A2: +record.A2,
+            A3: +record.A3,
+            p2: +record.p2,
+            p3: +record.p3,
+            max: +record.max
+        }
+    }).then(function(data) {
+        console.log('Done loading data');
+        groupedPlotData = groupData(data);
+        let domainNames = ["A2", "A3", "p2", "p3", "max"];
+        let domains = {};
+        domainNames.forEach(
+            name => {
+                domains[name] = computeDomain(data, name);
+            });
+
+        // Initial parameters are the min of all parameters
+        // "max" will be ignored anyway later so it's fine.
+        chosenParameters = {
+            A2: 0.5,
+            A3: 0.5,
+            p2: 0,
+            p3: 0
+        };
+
+        console.log('Done processing data');
+        setupAxes(domains["p2"]);
+        setupSliders(domains, ["A2", "A3"]);
+        setupGraph();
+        render();
+    })
+    .catch(err => console.error(err));
